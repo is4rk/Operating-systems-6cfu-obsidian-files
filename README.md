@@ -6,4 +6,4 @@ Most of the content of these summaries are derived from the slides taken from my
 
 $ means still not completed.
 
-The absense of $ means they cover all the sections of that unit. Unit and sections are taken from skenz.it/os
+The absense of $ means they cover all the sections of that unit. Unit and sections are taken from <l>https://www.skenz.it/os/</l>
