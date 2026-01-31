@@ -109,44 +109,54 @@ From a bottom-up view:
 	- In particular, it manages memory and processors
 	- A program (or better module) always in execution
 	- All other programs are system programs or applications
-- There are different types of kernel
-	- Modular kernel that is subdivided into levels
+- There are different types of kernel 
 	- Microkernel that provides only basic functionalities
 	- Monolithic kernel that provides functionalities through the device drivers (most common)
+	- Modular kernel that is subdivided into levels
+	- Esokernel, the systme has almost direct interact with the hardware, almost removing the OS
+This immage is a very good summary
 ![[Pasted image 20250922113016.png]]
 #### Monolithic kernels
+*Think of this as a giant Swiss Army knife where every tool is part of the same handle.*
 The services are realized through a set of system calls made by separate modules but whose integration is very tight
+- Structure: All OS services (File System, VFS, Device Drivers, Memory Management) run in Kernel Mode.
 - Drawbacks
 	- A problem on a module can block the entire system
 	- Adding a new hardware device involves adding its module to the kernel and recompile all the kernel (in modern kernel modules can be loaded at runtime)
 - Advantages
-	- The tight internal integration of the components is extremely efficient
+	- Since everything is in the same memory space, components talk to each other directly via simple function calls. There is no overhead of switching "modes."
 - Common solution
 	- Unix, Linux, Open VMS, XTS-400
 ![[Pasted image 20250922113128.png]]
 
 #### Microkernel
+*This follows the principle of "Least Privilege." The kernel is stripped down to the bare essentials.*
 It defines very small and simple software modules on top of the hardware that implement minimal services. It separates core service implementations from operating system operational structures.
+- Structure: Only the most critical tasks (Basic IPC, Virtual Memory, Scheduling) stay in Kernel Mode. Everything else (File Servers, Device Drivers) is moved to User Mode as separate processes.
 - Drawbacks
-	- Slow due to the high number of core services and context switching
+	- To communicate, components must use **IPC (Inter-Process Communication)**, which requires expensive "context switches" between User Mode and Kernel Mode.
 -  Advantages
-	-  Very stable
+	-  Very stable: If the File Server crashes, you can just restart it without the system crashing. It's also easier to port to new hardware
 - Not common solution
 	- March, L4, AmigaOS, Minix
 ![[Pasted image 20250922113252.png]]
 
 #### Hybrid aproach
-Intermediate approach between the previous two.  Microkernel with additional and "non- ssential" kernel- level code, which can be executed very quickly. It's a compromise adopted by many developers.
+*tries to get the best of both worlds.*
+Intermediate approach between the previous two.  Microkernel with additional and "nonessential" kernel-level code, which can be executed very quickly. It's a compromise adopted by many developers.
+- Structure: It looks like a microkernel because it is modular, but it runs some non-essential services (like drivers or the network stack) in Kernel Mode to reduce the IPC overhead.
 - Drawbacks
 	- Performance (slightly worse) but comparable with monolithic kernels
 -  Advantages
 	- It integrates advantages of monolithic and microkernels
 - Common solution
-	- Windows NT, Netware, XNU Kernel di Mac OS X, Dragonfly BSD
+	- Windows , Netware, Mac OS, Dragonfly BSD
 ![[Pasted image 20250922113438.png]]
 
 #### Esokernel
-Known as "vertical operating systems", it has Radically different approach to operating system design and a more direct access to hardware. They separate "protection from management".
+*The Kernel's Only Job: To safely multiplex and protect resources. It ensures that App A doesn't overwrite App B’s memory, but it doesn't tell App A how to manage its own memory.*
+
+Known as "vertical operating systems", it has Radically different approach to operating system design, with an almost direct access to hardware. 
 Extremely small and compact, as their functionality is arbitrarily limited to resource protection and  multiplexing.
 - Drawbacks
 	- They involve more work in application development (libraries decrease this effort)
@@ -159,18 +169,17 @@ Extremely small and compact, as their functionality is arbitrarily limited to re
 ### Bootstrap
 Bootstrap or booting program. 
 Initialization program. Executes at power-on performing a proper check and initialization of the computer hardware, then it loads the kernel into main memory.
-The bootstrap program is usually:
-- Stored in ROM and EEPROM (firmware)
-- Loaded at power-up or reboot
+The bootstrap program is usually stored in ROM and EEPROM (firmware).
 
 ### Kernel protection
-A mode bit is added to computer hardware to indicate the cur- Operating Systems classification, Linux installationrent mode: kernel (0) or user (1). When an interrupt, exception, or fault occurs, hardware switches to kernel mode. Privileged instructions, that can be issued only in kernel mode. 
-![[Pasted image 20250922114110.png]]
+A mode bit is added to computer hardware to indicate the current  mode: kernel (0) or user (1). When an interrupt, exception, or fault occurs, hardware switches to kernel mode. Privileged instructions, that can be issued only in kernel mode. 
+![[Pasted image 20250922114110.png|400]]
 Changing the content of a system register can only be done in kernel mode.
 - Dual mode ensures that a user program cannot gain control of the computer in kernel mode
-- Memory protection does not allow a user to write in kernel memory, e.g., store a new address in the interrupt vector. Load the memory protection registers is a privileged instruction
+- Memory protection does not allow a user to write in kernel memory, e.g., store a new address in the interrupt vector. 
+	- Loading the memory protection registers is a privileged instruction
 - Timer commonly used to implement time sharing
-	- Load the timer is a privileged instruction
+	- Loading the timer is a privileged instruction
 
 ### System call
 It is the interface with the services provided by the OS, i.e., it is the entry point of the OS. It's often implemented in assembler.
@@ -220,11 +229,11 @@ What happens when we make a system call
 A system call causes an exception, and CPU switches to kernel mode (mode bit = 0)
 - The exception, a software interrupts (or trap), activates the corresponding service routine
 	- It verifies that the parameters are correct and legal, executes the request, and returns control to the instruction following the system call
-![[Pasted image 20250922115300.png]]
+![[Pasted image 20250922115300.png|500]]
 
 Example:
 `read(fd, buffer, nbytes)`
-![[Pasted image 20250922115458.png]]
+![[Pasted image 20250922115458.png|400]]
 Example:
 System calls versus library functions
 - `printf` function uses system call `write`
@@ -250,7 +259,7 @@ There are several shells:
 
 ### File system
 Hierarchical structure of directories and files.
-![[Pasted image 20250922130006.png]]
+![[Pasted image 20250922130006.png|500]]
 
 ### Filename
 There are few composition rules and length limitations (i.e., typical 255 bytes). 
@@ -309,7 +318,7 @@ If, in the meanwhile, another processor executes the same operation, one of the 
 ### Process
 A running program (which includes a program counter, registers, variables, etc.). Is active entity. On UNIX systems, each process is characterized by a unique integer (positive) identifier
 Process tree:
-![[Pasted image 20250922131418.png]]
+![[Pasted image 20250922131418.png|300]]
 
 ### Threads
 They are also called light process. 
@@ -319,11 +328,11 @@ A process uses a set of resources. it can have one or more control streams runni
 A pipe allows a communication data flow to be established between two processes
 Typically, the channel is half-duplex (mono-directional)
 	● Communication in one direction from P1 to P2 or from P2 to P1
-![[Pasted image 20250922131622.png]]
+![[Pasted image 20250922131622.png|400]]
 
 ### Deadlock
 A deadlock is a situation in which entities (processes) sharing the same resource wait indefinitely an event, which is caused by other entities, resulting that one or more entities are blocked forever. 
-![[Pasted image 20250922131652.png]]
+![[Pasted image 20250922131652.png|400]]
 
 ### Livelock 
 Called also active deadlock. 
@@ -336,6 +345,6 @@ Examples:
 ### Starvation
 Access to a resource needed for its progress is repeatedly refused to an entity. 
 Starvation does not imply deadlock because while an entity may starve other can progress
-Instead, deadlock imply starvation. No entity can progress, consequently all are in starvation
+Instead, deadlock imply starvation. No entity can progress, consequently all are in starvation.
 
-# 
+THE LAST PPT COMPARING Unix MacOs and Windows has been skipped. Highly uinnteresting and unimportant, long live the penguin.
