@@ -1,4 +1,5 @@
-Where are new files allocated?# Introduction
+*Where are new files allocated?*`
+# Introduction
 The file system provides mechanisms to save data permanently. It icnludes management of Files, Directories, and Disk & Disk partitions 
 
 # Files
@@ -46,13 +47,13 @@ Drawbacks:
 - Limited portability
 - Impossibility to se a standard editor
 
-![[Pasted image 20251006103602.png]]
+![[Pasted image 20251006103602.png|400]]
 
 ## Serialization
 Process of translating a structure (e.g., C struct)  into a storable format. Using serialization, a struct can be stored or transmitted (on the network) as a single entity. When the sequence of bits is read, it is done in accordance with the serialization process, and the struct is reconstructed in an identical manner.
 Many languages support serialization using R/W operations on a file: Java, Python, Objective-C, Ruby, etc.
 
-![[Pasted image 20251006103658.png]]
+![[Pasted image 20251006103658.png|400]]
 
 ## ISO C Standard library
 I/O operations with ANSI C can be performed through different categories of functions:
@@ -332,7 +333,7 @@ Performance:
 - Grouping
 	- Management of files of a single user is complex
 	- Management of multiple users is practically impossible
-	![[Pasted image 20251006112858.png]]
+	![[Pasted image 20251006112858.png|400]]
 
 ## Directories with two levels
 Files are contained in a two-level tree
@@ -351,7 +352,7 @@ Performance
 - Grouping
 	- Simplified between different users
 	- Complex for each individual user
-![[Pasted image 20251006113105.png]]
+![[Pasted image 20251006113105.png|400]]
 ## Tree directories
 Generalize previous directories systems
 Directories and files are organized as a tree
@@ -365,7 +366,7 @@ Performance:
 	- With absolute path or relatice to the current working directory
 - Grouping
 	- Extended possibilities, flexible
-![[Pasted image 20251006113053.png]]
+![[Pasted image 20251006113053.png|400]]
 
 
 ### Acyclic graph directories
@@ -376,7 +377,7 @@ It is often useful to refer to the same object in the file system with different
 - It is worth noting that duplication of the object (i.e., the copy) is not a solution
 
 Tree file systems can be generalized organizing them as acyclic graphs:
-![[Pasted image 20251006114555.png]]
+![[Pasted image 20251006114555.png|300]]
 
 In UNIX-like systems, the standard stategy is the use of `links`. A link is a reference (pointer) to another (pre-existing) entry.
 But the presence of links increases difficulty in managing file systems. Necessary to distinguish between native entries and relative links, during creation, modification, and removal.
@@ -413,7 +414,7 @@ Creating a new link to a directory could cause the generation of a cycle in the 
 
 ### Cyclic graph directories
 The alternative to acyclic graphs is cyclic graphs
-![[Pasted image 20251006115304.png]]
+![[Pasted image 20251006115304.png|300]]
 
 
 ## Allocation
@@ -426,7 +427,7 @@ Main allocation techniques:
 
 #### Contiguous allocation
 Each file is stored in a contiguous set of blocks
-![[Pasted image 20251022095812.png]]
+![[Pasted image 20251022095812.png|400]]
 Pros:
 - Really easy allocation strategy. Really little information is stored for each file
 - It allows immediate and sequential accesses. They are sequential
@@ -441,7 +442,7 @@ Cons:
 
 #### Linked location
 Each file can be allocated by means of a linked list of blocks
-![[Pasted image 20251022102735.png]]
+![[Pasted image 20251022102735.png|400]]
 Pros
 - Resolve problems of contiguous allocation
 	- Allows dynamic allocation of file
@@ -464,7 +465,7 @@ In it References are not stored inside the data blocks on the disk, but directly
 Its a table with one element for each block on the disk. The sequence of blocks reffered to a file is identified starting from the directory using:
 	Starting block of the file in the FAT
 	Sequence of pointers available (directly) in the FAT (no longer in the blocks)
-![[Pasted image 20251022111346.png]]
+![[Pasted image 20251022111346.png|300]]
 The reading of each block requires two disk accesses (one to the FAT and one to the block to read)
 - First access on the FAT
 - Second on the data block
@@ -478,7 +479,7 @@ Limits:
 To allow an efficient and direct access it is possible to incorporate all the pointers into a table of pointers. This table of pointers is usually named `index block` or `i-node`
 Each file has its own table, which is a vector of addresses of the blocks in which the file is contained
 - The i-th element of the vector identifies the i-th block of the file 
-![[Pasted image 20251022111552.png]]
+![[Pasted image 20251022111552.png|350]]
 Compared to the linked allocation, the allocation of an index block is always needed
 Index blocks of limited size allow to reduce the waste of space.
 Index blocks of extended size increase the number of references that can be inserted in the index block
@@ -494,9 +495,9 @@ Each `i-node` contains different information including 15 pointers to the data b
 - The first 12 pointers are direct.
 - The remaining are indirect pointers with increasing adressing level.
 	- The block addressed by a pointer does not contain data, but pointers / pointers to pointers /  pointers to pointers to pointers, to the data blocks of the file
-![[Pasted image 20251022123207.png]]
-![[Pasted image 20251022124113.png]]
-![[Pasted image 20251022124123.png]]
+![[Pasted image 20251022123207.png|400]]
+![[Pasted image 20251022124113.png|400]]
+![[Pasted image 20251022124123.png|400]]
 
 - Hard link (physical link)
 	- Directory entry that points (links) an i-node
@@ -507,8 +508,8 @@ Each `i-node` contains different information including 15 pointers to the data b
 - Soft link (Symbolic link)
 	- The data block identified by the i-node points to a data block that contains the path name of the file
 	- Basically, it is a file that in its only data block has the name of another file
-![[Pasted image 20251022124554.png]]
-![[Pasted image 20251022124602.png]]
+![[Pasted image 20251022124554.png|400]]
+![[Pasted image 20251022124602.png|400]]
 
 ## Modern file systems 
 | Attribute / File System | FAT32 | exFAT | NTFS | Ext4 |
@@ -632,5 +633,5 @@ int rmdir (const char *path);
 `return`: 0 on success, -1 on error
 
 # Additional material (Not required at the exam)
-![[Pasted image 20251022133338.png]]
-![[Pasted image 20251022133347.png]]
+![[Pasted image 20251022133338.png|400]]
+![[Pasted image 20251022133347.png|400]]
