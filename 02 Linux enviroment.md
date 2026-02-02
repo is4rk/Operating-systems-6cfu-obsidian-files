@@ -184,9 +184,9 @@ chmod go-w #removes write permission from group and other
 
 ## Directory
 Changing the owner of a directory entry
-	```bash
-	chown [options] user entry
-	```
+```bash
+chown [options] user entry
+```
 Changing the group of a directory entry
 ```bash
 chgrp [options] group entry
@@ -202,23 +202,39 @@ Options:
 -R recursive
 # Output the content of a file
 Output and concatenate files:
-	`cat filename1 filename2`]
+```bash
+cat filename1 filename2`]
+```
 Output the first n lines of a file
-	`head [options] filename ...`  //default is 10, can also remove lines from print by doing -3, doenst print last 3
+```bash
+head [options] filename ...
+# default is 10, can also remove lines from print by doing -3, doenst print last 3
+```  
+	
 Output the last num lines of a file
-	`tail [options] filename ...`
+```bash
+tail [options] filename ...
+```
+
 
 Options:
--n num, number of lines
--f, outputs appended data as the file grows (i.e., the file
-is continuously re-read)
+- `-n` num, number of lines
+- `-f,` outputs appended data as the file grows (i.e., the file is continuously re-read)
 
 browse page-wise through text file:
-	`pg [options] filename ...`
+```bash
+pg [options] filename ...
+```
+
 to view a text file:
-	`more [options] filename ...`
+```bash
+more [options] filename ...
+```
+
 Like the previous command but allows the use of arrows to move in the text (advanced version of more):
-	`less [options] filename ...`
+```bash
+less [options] filename ...
+```
 
 `more` and `less` can be nagivated with the following inputs:
 - space: Next page
@@ -228,15 +244,17 @@ Like the previous command but allows the use of arrows to move in the text (adva
 - ?str: Find previous occurrence of string str
 - q: Quit
 # Counts
-`wc filename`
+```bash
+wc filename
+```
 prints:
 number_lines, number_word, number_char
 
 options:
--l prints only n lines
--w prints only n words
--c  prints only n byts
--m prints only number of characters
+- `-l` prints only n lines
+- `-w` prints only n words
+- `-c`  prints only n byts
+- `-m` prints only number of characters
 
 It always outputs the name of the file as the first line
 
@@ -251,11 +269,11 @@ diff [options] dir1 dir2
 ```
 
 OPTIONS:
--q reports only when files differ
--b Ignores spaces at the end of the line, merges the others
--i case insensitive
--w ignores completely al white spaces
--B ingnores all blank lines
+- `-q` reports only when files differ
+- `-b` Ignores spaces at the end of the line, merges the others
+- `-i `case insensitive
+- `-w` ignores completely al white spaces
+- `-B` ingnores all blank lines
 
 # Hard and soft links
 Symbolic or soft link:
@@ -276,9 +294,9 @@ Default:
 Creates a hard link. If the destination is not present, creates a link with the same filename on the working director.
 
 Options:
--s creates a symbolic link
--f forces creation, removes file if already exist
--f, -F allow the superuser to attempt to create a hard link to a directory
+- `-s` creates a symbolic link
+- `-f` forces creation, removes file if already exist
+- `-f`, `-F` allow the superuser to attempt to create a hard link to a directory. Destionation is a directory
 
 # Archive management
 Data storage and compression can be managed using the `tar` command
@@ -287,19 +305,19 @@ Data storage and compression can be managed using the `tar` command
 tar czvf <file>.tgz <dir>
 ```
 Options:
--c
--z,j,J compression gzip, bzip2, 7z
--v vebose
--f specify the name of the archive
+- `-c`
+- `-z`,`-j`,`-J` compression gzip, bzip2, 7z
+- `-v` vebose
+- `-f` specify the name of the archive
 
 **Extracting**
 ```bash
 tar xzvf <file>.tgz <dir>
 ```
--x Extracts the files from the archive
--z, j, J Compression (gzip, bzip2, 7z)
--v Verbose (print some messages and statistics)
-f Specify the name of the archive (always present)
+- `-x` Extracts the files from the archive
+- `-z`,`-j`,`-J` compression gzip, bzip2, 7z
+- `-v` vebose
+- `-f` specify the name of the archive
 
 # Disk space occupation
 To control disk occupancy, it is possible to use the df command
@@ -307,9 +325,8 @@ To control disk occupancy, it is possible to use the df command
 df [options] [disk ...]
 ```
 OPTIONS: 
--B SIZE, scale sizes by SIZE before printing them. Size can be 1K, 10K, 1M, 1G, 1T etc.
-	--block-size=SIZE
--k correpsonds to --blocksize=1k
+- `-B SIZE`, `--block-size=SIZE`, scale sizes by SIZE before printing them. Size can be 1K, 10K, 1M, 1G, 1T etc.
+- `-k `correpsonds to --blocksize=1k
 
 
 To control direcotry occupation
@@ -317,9 +334,9 @@ To control direcotry occupation
 du [options] directory
 ```
 Options:
--a Occupation of each file
---summarize, -s Prints only the total
---block-size=1K, -k Occupation in kB
+- `-a` Occupation of each file
+- `--summarize`, `-s` Prints only the total
+- `--block-size=1K`, -k Occupation in kB
 
 # pushd
 pushd is like cd, but after setting a path it reCan also use this system:mebers it, so if i run pushd, i jump to that directory.
