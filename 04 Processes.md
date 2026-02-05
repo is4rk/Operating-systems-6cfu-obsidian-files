@@ -63,7 +63,7 @@ pid_t fork (void);
 	- -1 (usually occurs because a limit on the number of allowed process has been reached)
 
 
-![[Pasted image 20251025154346.png|500]]
+![[Pasted image 20251025154346.png|300]]
 Code is equal
 Value of the data at the time of the fork is equal.
 PCB is different, Process COntrol Block (a data structure which holds all information about a process).
@@ -173,7 +173,7 @@ A parent process can manage child termination
 -  Synchronously: by means of system calls
 	-  `wait`
 	-  `waitpid`
-![[Pasted image 20251025174209.png|400]]
+![[Pasted image 20251025174209.png|250]]
 
 
 ### wait()
@@ -267,7 +267,7 @@ Non mi va bene che non mi parli dei  tuoi problemi e le tue preocupazioni, se te
 | `WUNTRACED` | Report if a child has stopped (but not terminated) due to a signal (e.g. `SIGSTOP`) |
 | `WCONTINUED` | Report if a previously stopped child has continued due to `SIGCONT` |
 | `WNOWAIT` *(POSIX.1-2001)* | Keep the child's state info — don’t remove it from the process table (can wait for it again) |
-![[Pasted image 20251026142605.png|400]]
+![[Pasted image 20251026142605.png|300]]
 
 # Theoretical Aspects
 ## Definitions algorithm and program
@@ -299,7 +299,7 @@ The kernal stores for each process a set of data
 	- CPU usage, limits, etc.
 - I/O status information
 	- I/O device list, open files, etc.
-![[Pasted image 20251030104125.png|250]]
+![[Pasted image 20251030104125.png|130]]
 
 ### Process state
 -  New: process is created and submitted to the OS
@@ -310,7 +310,7 @@ The kernal stores for each process a set of data
 
 #### State diagram
 The possible state evolution of a process is described by a state diagram.
-![[Pasted image 20251030104437.png]]
+![[Pasted image 20251030104437.png|400]]
 
 ## Context switching
 When a CPU is assigned to another process, the kernel:
@@ -318,7 +318,7 @@ When a CPU is assigned to another process, the kernel:
 - Loads the state previously saved for the new process
 
 The time devoted to the context switching is overhead, i.e., time not direclty useful for any process, this amount of time is hardware-dependent
-![[Pasted image 20251030104741.png|600]]
+![[Pasted image 20251030104741.png|400]]
 
 
 ## Process scheduling 
@@ -362,7 +362,7 @@ In particular it:
 
 
 Address space
-![[Pasted image 20251030110943.png|500]]
+![[Pasted image 20251030110943.png|400]]
 
 ### exec versions
 6 versions of exec system call
@@ -417,7 +417,7 @@ NULL
 execle (path, arg0, ..., argn, 0, env);
 execve (path, argv, env);
 ```
-![[Pasted image 20251030115938.png|650]]
+![[Pasted image 20251030115938.png|400]]
 
 ### Considerations
 Note that during the exec
@@ -587,7 +587,7 @@ Singnal management goes through three phases:
 		- Accept the default behavior (be terminated)
 		- Declare to the kernel that it wants to ignore the signals of that type
 		- Declare to the kernel that it wants to catch and manage the signals of that type by means of a signal handler function (similarly to the interrupt management
-![[Pasted image 20251031101659.png|600]]
+![[Pasted image 20251031101659.png|400]]
 
 Signal management can be carried out with the following system calls:
 - `signal`
@@ -900,7 +900,7 @@ Suppose two processes P$_1$ and P$_2$ decide to synchronize by means of signals.
 Unfortunately:
 - If P1 (P2) signal is delivered before P$_2$ (P$_1$) executes pause
 - Process P$_2$ (P$_1$) blocks forever waiting a signal
-![[Pasted image 20251027102839.png]]
+![[Pasted image 20251027102839.png|400]]
 
 Despite their defects, signals can provide a rough synchronization mechanism.
 
@@ -1005,7 +1005,7 @@ Sharing of a memory area and writing of data in this area
 - Processes must agree on the:
 	  - Access rights
 	 - Access strategies
-![[Pasted image 20251027104341.png|200]]
+![[Pasted image 20251027104341.png|100]]
 
 The most common methods for shared buffer use a:
 - File
@@ -1023,7 +1023,7 @@ Communication takes place through the exchange of messages:
 	- which request kernel intervention
 	- and introduce overhead
 
-![[Pasted image 20251027104958.png|150]]
+![[Pasted image 20251027104958.png|100]]
 A communication channel can offer direct or indirect communication
 - direct
 	- Is performed naming the sender or the receiver
@@ -1095,10 +1095,10 @@ return:
 Resources associated to a pipe released when all involved processes  close their terinals or they are terminated.
 
 Using a pipe inside a process is possible but not that usefull:
-![[Pasted image 20251027111640.png]]
+![[Pasted image 20251027111640.png|350]]
 
 A pipe typically allows a parent and a child to communicate. Parent must fork  after creating the pipe.
-![[Pasted image 20251027111742.png]]
+![[Pasted image 20251027111742.png|350]]
 
 ## Pipe I/O
 The descriptor of the pipe is an integer number
@@ -1125,12 +1125,12 @@ System call write
 # Shell commands for Pipes and redirections
 ## Pipe
 Inter-process communication can be performed also by processes executed by shell commands. A shell pipe connects the standard output of a sender process, and the standard input of a receiving process
-![[Pasted image 20251108163640.png]]
+![[Pasted image 20251108163640.png|350]]
 
 ```bash
 command1 | command2 | command3 ...
 ```
-![[Pasted image 20251108163743.png]]
+![[Pasted image 20251108163743.png|350]]
 Examples:
 ```bash
 ls -la | more
