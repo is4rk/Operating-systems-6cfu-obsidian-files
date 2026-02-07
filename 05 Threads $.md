@@ -1,8 +1,7 @@
 # Threads
 
 ## Process characteristics
-A process may execte other processes through cloning UNIX, `fork`
-replacing the current image with another image UNIX, `exec`
+A process may execute other processes through cloning UNIX, `fork` or replacing the current image with another image UNIX, `exec`
 Each process has its own address space and a single execution thread (a single program counter)
 
 Cloning involves:
@@ -68,10 +67,10 @@ The use of threads allows
 		- Data partitioning (same task on data blocks)
 
 ## Disadvantages
- There is no protection for threads
+- There is no protection for threads
 	- They are executed in the same address space and OS protection is impossible or unnecessary
 	- If the threads are not synchronized, access to shared data is not thread safe
- There is not a parent-child hierarchical relationship between threads
+- There is not a parent-child hierarchical relationship between threads
 	- To the creating thread is normally returned the identifier of the created thread, but this does not imply a hierarchical relationship
 	- All threads are "equal"
 
@@ -159,7 +158,7 @@ What is the output?
 0; if T2 and T3 take longer than 10 seconds
 1; if T2 take a bit of time to write to a,  making T3 read a=0 instead of a=1, so when T3 writes, it writes a=1
 2; if T2 finishes before T3 and T3 before T1's sleep
-![[Pasted image 20251109125509.png|600]]
+![[Pasted image 20251109125509.png|400]]
 The solution is to not act on critical regions concurently, creating sequential access.
 ## Multithread programming models
 Three multithread programming models exist:
@@ -173,8 +172,8 @@ Three multithread programming models exist:
 	- The operating system provides both user-level and kernel threads
 
 ### Kernel-level threads
- Threads are managed by the kernel
- The OS
+- Threads are managed by the kernel
+- The OS
 	- Manipulates both processes and threads
 	- Is aware of the existence of threads
 	- Provides adequate support for their handling
@@ -234,53 +233,53 @@ Each process needs a personal table of running threads:
 - Inappropriate or inefficient choices can be made
 	- The OS could schedule a process whose running thread could do a blocking operation
 	- In this case, the whole process could be blocked even if inside it several other threads could be executed
- Information should be communicated between kernel and run-time user-level manager
- Without this communication mechanism
-	 Exist only on running thread for each task even in a multiprocessor system
-	 There is no scheduling within a single process, i.e., interrupts do not exist within a single process
-	 If a running thread does not release the CPU, it cannot be blocked
- The scheduler must map user threads to the single kernel thread
-	 If the kernel thread blocks, all the user-level threads are blocked
-	 There is no true thread-level parallelism without handling multiple threads at the kernel-level
+- Information should be communicated between kernel and run-time user-level manager
+- Without this communication mechanism
+	- Exist only on running thread for each task even in a multiprocessor system
+	- There is no scheduling within a single process, i.e., interrupts do not exist within a single process
+	- If a running thread does not release the CPU, it cannot be blocked
+- The scheduler must map user threads to the single kernel thread
+	- If the kernel thread blocks, all the user-level threads are blocked
+	- There is no true thread-level parallelism without handling multiple threads at the kernel-level
 
 ### Hybrid thread
 This is used by all OSs
 One of the multi-thread programming problems is to define the relationship between user-level threads and kernel-level threads.
- The basic idea is to have m user threads and to map them to n kernel threads
- Typically, n < m
-![[Pasted image 20251109153410.png]]
+- The basic idea is to have m user threads and to map them to n kernel threads
+- Typically, n < m
+![[Pasted image 20251109153410.png|300]]
 
 The hybrid implementation attempts to combine the advantages of both approaches
- The user decides the number of its user-level threads, and the number of kernel-threads on which they must be mapped
- The kernel is aware only of the kernel thread and only manages those threads
- Each kernel thread can be used in turn by several user threads
+- The user decides the number of its user-level threads, and the number of kernel-threads on which they must be mapped
+- The kernel is aware only of the kernel thread and only manages those threads
+- Each kernel thread can be used in turn by several user threads
 
 
 ## Coexistence between processes and threads
 The coexistence of processes and threads causes various kinds of problems related to
- Signals management
-	 With T defines the behavior at the reception of a signal, and which T receives signals?
- Cloning (fork) a process
-	 A fork performs the duplication of all the thread (forkall), or it only duplicates the thread that invokes it (fork1)?
- The substitution of a program with another (exec)
-	 Does an exec only replace the thread that executes the exec, or does it duplicate all threads in the process?
+- Signals management
+	- With T defines the behavior at the reception of a signal, and which T receives signals?
+- Cloning (fork) a process
+	- A fork performs the duplication of all the thread (forkall), or it only duplicates the thread that invokes it (fork1)?
+- The substitution of a program with another (exec)
+	- Does an exec only replace the thread that executes the exec, or does it duplicate all threads in the process?
 	
 Signals management
- Definition of the behaviour at the reception of a signal
-	 Each thread can define the behavior of the process at the reception of a signal
-	 Different threads can define conflicting actions
- Each signal is delivered to a single thread within the process
-	 If a signal is specifically associated with a thread, it is delivered to that thread (`pthread_sigmask`)
-	 Generic signals are delivered to an arbitrary thread
+- Definition of the behaviour at the reception of a signal
+	- Each thread can define the behavior of the process at the reception of a signal
+	- Different threads can define conflicting actions
+- Each signal is delivered to a single thread within the process
+	- If a signal is specifically associated with a thread, it is delivered to that thread (`pthread_sigmask`)
+	- Generic signals are delivered to an arbitrary thread
 
 Use of the system call `fork`
- In a multi-thread process, a fork duplicates only the thread that calls the fork
- The private data owned by the threads not duplicated by the fork may not be "manageable" by the single duplicated thread
-	 To manage correctly the state of the process after the fork, UNIX provides specific system calls, e.g., `pthread_atfork`
+- In a multi-thread process, a fork duplicates only the thread that calls the fork
+- The private data owned by the threads not duplicated by the fork may not be "manageable" by the single duplicated thread
+	- To manage correctly the state of the process after the fork, UNIX provides specific system calls, e.g., `pthread_atfork`
 
 Use of the system call `exec`
- An `exec` performed by a thread substitutes with the new program the whole process (not only the thread that executes the exec)
- If a duplicated thread executes and exec immediately after the execution of a fork, the states of the other threads before the fork are not important, because they are not duplicated by the fork
+- An `exec` performed by a thread substitutes with the new program the whole process (not only the thread that executes the exec)
+- If a duplicated thread executes and exec immediately after the execution of a fork, the states of the other threads before the fork are not important, because they are not duplicated by the fork
 
 # Pthread library
 It provides the programmer the intergace to use the threads.
@@ -291,11 +290,11 @@ A thread is a function that is executed in concurrency with the main thread.
 A process with multiple threads= a set of indipendently executing functions that share the process resources.
 
 The pthread library allows:
- Creating and manipulating threads
- Synchronizing threads
- Protection of resources shared by threads
- Thread scheduling
- Destroying thread
+- Creating and manipulating threads
+- Synchronizing threads
+- Protection of resources shared by threads
+- Thread scheduling
+- Destroying thread
 
 It defines more than 60 functions. All these functions have a `pthread_`* prefix:
 ```c
@@ -350,14 +349,14 @@ int pthread_create (pthread_t *tid, const pthread_attr_t *attr, void *(*startRou
 - Error code on failure
 ## pthread_exit() 
 A whole process with al its threads terminates if:
- Its thread calls `exit` (or `_exit` or `_Exit`)
- The main thread execute return
- The main thread receives a signal whose action is to terminate 
+- Its thread calls `exit` (or `_exit` or `_Exit`)
+- The main thread execute return
+- The main thread receives a signal whose action is to terminate 
 
 A single thread can termiante (without affecting the other process threads):
- Executing return from its start function
- Executing pthread_exit
- Receiving a cancellation request performed by another thread using pthread_cancel
+- Executing return from its start function
+- Executing pthread_exit
+- Receiving a cancellation request performed by another thread using pthread_cancel
 
 pthread_exit() allows a thread to terminate returning a termination status
 ```c
@@ -486,10 +485,10 @@ int pthread_detach (pthread_t tid);
 ## Exercise:
 Given a text file, with an undefined number of characters, passed as an argument of the
 command line 
- Implement a concurrent program using three threads (T1, T2, T3) that process the file content in pipeline
- T1: Read from file the next character
- T2: Transforms the character read by T1 in uppercase
- T3: Displays the character produced by T2 on standard output
+- Implement a concurrent program using three threads (T1, T2, T3) that process the file content in pipeline
+- T1: Read from file the next character
+- T2: Transforms the character read by T1 in uppercase
+- T3: Displays the character produced by T2 on standard output
 
 lets say its "ciao"
 
