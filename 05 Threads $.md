@@ -1,8 +1,7 @@
 # Threads
 
 ## Process characteristics
-A process may execte other processes through cloning UNIX, `fork`
-replacing the current image with another image UNIX, `exec`
+A process may execte other processes through cloning UNIX, `fork` or replacing the current image with another image UNIX, `exec`.
 Each process has its own address space and a single execution thread (a single program counter)
 
 Cloning involves:
@@ -11,7 +10,7 @@ Cloning involves:
 - synchronization and data transger
 	- no cost or minimal for almost indipendent processes
 	- high cost for cooperating processes
-- management of multiple processes requires
+- management of multiple processes requiresF
 	- complex scheduling
 	- expensive context switching operations
 
@@ -40,7 +39,7 @@ Shared data: (with other threads of the same process)
 Private data:
 - Program counter and hardware registers
 - Stack (i.e. local variables and execution history )
-![[Pasted image 20251109120134.png|300]]
+![[Pasted image 20260207105217.png|400]]
 Signal table: maps each signal to a given memory address
 Memory map: says which are of memory can be used by the process and which not
 File descripto table: list of open file descriptor
@@ -78,25 +77,67 @@ The use of threads allows
 ### Concurrency with theards
 Optimize the following code segment that performs the scalar product of four huge dimension vectors (v1, v2, v3, v4)
 ```c
-define N 100000000
-...
-mult (int a, int b) {
-	for (i=a; i<b; i++)
-		v[i] = v1[i] * v2[i] + v3[i] * v4[i];
-	}
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define N 1000000
+#define NUM_THREADS 4
+
+// Global Vectors
+float v1[N], v2[N], v3[N], v4[N];
+float global_sum = 0;
+pthread_mutex_t sum_mutex; // Protects the global_sum
+
+typedef struct {
+    int start;
+    int end;
+} thread_data_t;
+
+void* scalar_product_part(void* arg) {
+    thread_data_t *data = (thread_data_t *)arg;
+    float local_sum = 0;
+
+    // 1. Calculate local partial sum (No mutex needed here)
+    for (int i = data->start; i < data->end; i++) {
+        local_sum += (v1[i] * v2[i]) + (v3[i] * v4[i]);
+    }
+
+    // 2. Safely add to global sum using a Mutex
+    pthread_mutex_lock(&sum_mutex);
+    global_sum += local_sum;
+    pthread_mutex_unlock(&sum_mutex);
+
+    pthread_exit(NULL);
+}
+
+int main() {
+    pthread_t threads[NUM_THREADS];
+    thread_data_t thread_args[NUM_THREADS];
+    
+    pthread_mutex_init(&sum_mutex, NULL);
+
+    // Initialize vectors with dummy data (omitted for brevity)
+
+    // Create threads
+    int chunk_size = N / NUM_THREADS;
+    for (int i = 0; i < NUM_THREADS; i++) {
+        thread_args[i].start = i * chunk_size;
+        thread_args[i].end = (i == NUM_THREADS - 1) ? N : (i + 1) * chunk_size;
+        pthread_create(&threads[i], NULL, scalar_product_part, &thread_args[i]);
+    }
+
+    // Join threads
+    for (int i = 0; i < NUM_THREADS; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
+    printf("Final Scalar Product: %f\n", global_sum);
+    pthread_mutex_destroy(&sum_mutex);
+    return 0;
 }
 ```
-With processes, data sharing would be expensive and prevent its use.
- 
-```c
-mult (int a, int b) {
-	for (i=a; i<b; i++)
-		v[i] = v1[i] * v2[i] + v3[i] * v4[i];
-}
-...
-CreateThread (mult, 0, N/2); //creates T2
-CreateThread (mult, N/2, N); // creates T3, T1 is the whole code
-```
+
 
 Example:
 ```c
@@ -105,7 +146,7 @@ th_sum(int *a){
 	*a++;
 }
 
-main(){
+main(){ //main thread
 	a=0
 	phthread_create(...,th_sum,...); //T2
 	phthread_create(...,th_sum,...); //T3
