@@ -32,7 +32,7 @@ remove a container:
 sudo docker rm <dockername>
 ```
 
-# SHH
+# SSH
 Remote connection
 ```bash
 ssh -X <username@hostname>
