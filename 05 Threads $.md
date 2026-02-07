@@ -1,7 +1,8 @@
 # Threads
 
 ## Process characteristics
-A process may execte other processes through cloning UNIX, `fork` or replacing the current image with another image UNIX, `exec`.
+A process may execte other processes through cloning UNIX, `fork`
+replacing the current image with another image UNIX, `exec`
 Each process has its own address space and a single execution thread (a single program counter)
 
 Cloning involves:
@@ -10,7 +11,7 @@ Cloning involves:
 - synchronization and data transger
 	- no cost or minimal for almost indipendent processes
 	- high cost for cooperating processes
-- management of multiple processes requiresF
+- management of multiple processes requires
 	- complex scheduling
 	- expensive context switching operations
 
@@ -45,7 +46,7 @@ Memory map: says which are of memory can be used by the process and which not
 File descripto table: list of open file descriptor
 Multiple thread (arrow)
 
-![[Pasted image 20251109120316.png]]
+![[Pasted image 20251109120316.png|400]]
 
 ### Advantages
 The use of threads allows
@@ -328,10 +329,191 @@ int pthread_equal (
 return:
 - non zero if equal
 - 0 if not equal
-
-## phtread_self()
+## pthread_self()
 ```c
-pthread_t pthread_self (
-	void
+pthread_t pthread_self (void);
+```
+`return`: thread identifier of the calling thread
+## pthread_create()
+At the beginning, a program consists of one process and one thread.
+`pthread_create` allows creating a new thread. The maximum number of thread that can be created is undefined and implementation dependent
+![[Pasted image 20251110105346.png|400]]
+```c
+int pthread_create (pthread_t *tid, const pthread_attr_t *attr, void *(*startRoutine)(void *), void *arg);
+```
+`tid`: identifier of the generated thread
+`attr`: thread attributes (`NULL` by default)
+`startRoutine`: C function executed by the thread
+`arg`: Argument passed to the start routine 
+`return`:
+- 0 on success
+- Error code on failure
+## pthread_exit() 
+A whole process with al its threads terminates if:
+ Its thread calls `exit` (or `_exit` or `_Exit`)
+ The main thread execute return
+ The main thread receives a signal whose action is to terminate 
+
+A single thread can termiante (without affecting the other process threads):
+ Executing return from its start function
+ Executing pthread_exit
+ Receiving a cancellation request performed by another thread using pthread_cancel
+
+pthread_exit() allows a thread to terminate returning a termination status
+```c
+void pthread_exit (
+	void *valuePtr
 );
 ```
+`valuePtr`: value is kept by the kernal until a thread calls `pthread_join()`, then the value become available to the thread that calls pthread_join().
+
+buggy code:
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <pthread.h>
+
+#define NUM_THREADS 8
+
+void *PrintHello ( void *threadid) {
+	int *id_ptr, taskid;
+	//sleep(1);
+	id_ptr = (int *) threadid;
+	taskid = *id_ptr;
+	fprintf (stdout, "Hello from thread %d\n", taskid);
+	pthread_exit (NULL);
+}
+
+int main (int argc, char *argv[]){
+	pthread_t threads[NUM_THREADS];
+	int rc, t;
+	for (t=0; t<NUM_THREADS; t++) {
+		printf("Creating thread %d\n", t);
+		rc = pthread_create (&threads[t], NULL, PrintHello, (void *) &t);
+		if (rc) {
+			printf("ERROR; return code from pthread_create() is %d\n", rc);
+			exit(-1);
+		}
+	 }
+	pthread_exit(NULL);
+}
+
+```
+The scheduler doesnt know your code
+![[Pasted image 20251110103904.png]]
+
+## pthread_join()
+At a threads creation, it self can be declared
+- joinable
+	- Another thread may "wait" (pthread_join) for its termination, and collect its exit status
+	- its termination status is retained until another thread performs a `pthread_joun` for that thread
+- detached
+	- No thread can explicitly wait for its termination
+	-  its termination status is immeidately released
+
+In any case a thread calling `pthread_join` waits until the required thread calls `phread_exit`.
+
+Used by a thread to wait the termination of another thread
+```c
+int pthread_join (
+	pthread_t tid,
+	void **valuePtr
+);
+```
+`tid`: identifeira of the waited-for thread
+`ValuePtrL`: will obtain the value returned by thread `tid`
+`return`: 
+- 0 on success
+- Error code on failure
+	- if the thread was detached (can happen that it terminates corectly non the less)
+	- returns `EINVAL` or `ESRCH`
+![[Pasted image 20251110110027.png|450]]
+
+```c
+int myglobal;
+void *threadF (void *arg) {
+	int *argc = (int *) arg;
+	int i, j;
+	for (i=0; i<20; i++) {
+		j = myglobal;
+		j = j + 1;
+		printf ("t");
+		if (*argc > 1) sleep (1);
+		myglobal = j;
+	}
+	printf ("(T:myglobal=%d)", myglobal);
+	return NULL;
+}
+
+int main (int argc, char *argv[]) {
+	pthread_t mythread;
+	int i;
+	pthread_create (&mythread, NULL, threadF, &argc);
+	for (i=0; i<20; i++) {
+		myglobal = myglobal + 1;
+		printf ("m");
+		sleep (1);
+	}
+	pthread_join (mythread, NULL);
+	printf ("(M:myglobal=%d)", myglobal);
+	exit (0);
+}
+```
+## pthread_cancel
+Terinates the target thread (The effect is similar to a call to `pthread_exit(PTHREAD_CANCELED)` performed by the target thread)
+The thread calling pthread_cancel does not wait for termination of the target thread (it
+continues immediately after the calling)
+```c
+int pthread_cancel (pthread_t tid);
+```
+`tid`: target thread identifier
+`return`:
+- 0 on success
+- Error code on failure
+
+## pthread_detach()
+Declares thread `tid` as detached
+```c
+int pthread_detach (pthread_t tid);
+```
+`tid`: thread identifier
+`return`:
+- 0 on success
+- Error code on failure
+
+
+## Exercise:
+Given a text file, with an undefined number of characters, passed as an argument of the
+command line 
+ Implement a concurrent program using three threads (T1, T2, T3) that process the file content in pipeline
+ T1: Read from file the next character
+ T2: Transforms the character read by T1 in uppercase
+ T3: Displays the character produced by T2 on standard output
+
+lets say its "ciao"
+
+| time | R   | T   | W   |
+| ---- | --- | --- | --- |
+| 1    | c   |     |     |
+| 2    | i   | C   |     |
+| 3    | a   | I   | C   |
+| 4    | o   | A   | I   |
+| 5    |     | O   | A   |
+| 6    |     |     | O   |
+So the operation would take 6 seconds, instead of:
+
+| time | R   | T   | W   |
+| ---- | --- | --- | --- |
+| 1    | c   |     |     |
+| 2    | i   |     |     |
+| 3    | a   |     |     |
+| 4    | o   |     |     |
+| 5    |     | C   |     |
+| 6    |     | I   |     |
+| 7    |     | A   |     |
+| 8    |     | O   |     |
+| 9    |     |     | C   |
+| 10   |     |     | I   |
+| 11   |     |     | A   |
+| 12   |     |     | O   |
