@@ -1,7 +1,7 @@
 # Threads
 
 ## Process characteristics
-A process may execute other processes through cloning UNIX, `fork` or replacing the current image with another image UNIX, `exec`
+A process may execte other processes through cloning UNIX, `fork` or replacing the current image with another image UNIX, `exec`
 Each process has its own address space and a single execution thread (a single program counter)
 
 Cloning involves:
