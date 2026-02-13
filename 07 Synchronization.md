@@ -506,9 +506,9 @@ Obtain a specific order of execution:
 ### Example 2
 **Pure synchronization**
 Synchronize two T/P so that
- T$_j$ waits T$_i$
- then, Ti waits T$_j$ 
- It is a client-server schema
+- T$_j$ waits T$_i$
+- then, Ti waits T$_j$ 
+- It is a client-server schema
 ![[Pasted image 20260213175336.png|400]]
 ### Example 3
 **Pure synchronization**
@@ -524,4 +524,313 @@ Implement this precedence graph
 ![[Pasted image 20260213175945.png|400]]![[Pasted image 20260213175956.png|400]]
 ![[Pasted image 20260213180002.png|400]]![[Pasted image 20260213180007.png|400]]
 
-Implementation of a semaphore
+## Implementation of a semaphore
+Semaphores must be implemented without "active" busy waiting (spin-lock).
+We define a semaphore as a C structure with
+- A counter
+- A list (queue) of processes
+
+```c
+typedef struct semaphore_s {
+	int cnt; // Number of processes
+	process_t *head; // List of processes
+} semaphore_t;
+```
+Therefor we have:
+```c
+init (semaphore_t *S, int k) {
+	alloc S;
+	S->cnt = k;
+	S->head = NULL;
+}
+
+wait (semaphore_t *S) {
+	S->cnt--;
+	if (S->cnt<0) {
+		push P to S->head;
+		block P;
+	}
+}
+
+signal (semaphore_t *S) {
+	S->cnt++;
+	if (S->cnt<=0) {
+		pop P from S->head;
+		wakeup P;
+	}
+}
+
+destroy (semaphore_t *S) {
+	while (S->cnt<=0) {
+		free P from S->head;
+		S->cnt++;
+	}
+}
+```
+
+The real implementation allows
+- The counter
+	- to have negative values. Its absolute value indicates the number of processes in the queue of the semaphore.
+- The queue
+	- Can be implemented with a pointer in the Process Control Block (PCB) of the processes
+	- It uses the policies defined by the scheduler (e.g., FIFO)
+
+
+### Real implementation
+There are several semaphores implementations
+- Semaphores by means of a pipe
+- POSIX Pthread
+	- Condition variables (`pthread_cond_init`, `pthread_cond_wait`, `pthread_cond_signal`...)
+	- Semaphores
+		- The most important
+	- Mutex (for mutual exclusion)
+- Linux semaphores (`semget`, `semop`, `semctl`)
+
+Notice that semaphores are
+- Global shared objects (see `sem_init`)
+- They are allocated by a thread, but they are kernel objects
+
+#### By mean of a pipe
+Given a pipe
+- The counter of a semaphore is achieved by means of tokens
+- Signal implemented using the write system call to write a token on the pipe (non-blocking)
+- Wait implemented using the read system call to read a token from the pipe (blocking)
+![[Pasted image 20260213181606.png|400]]
+
+```c
+#include <unistd.h>
+void semaphoreInit (int *S, int k) {
+	char ctr = 'X';
+	int i;
+	if (pipe (S) == -1) {
+		printf ("Error"); exit (-1);
+	}
+	for(i=0; i<k; i++)
+		if (write(S[1], &ctr, sizeof(char)) != 1) {
+			printf ("Error"); exit (-1);
+	}
+	return;
+}
+
+#include <unistd.h>
+void semaphoreSignal (int *S) {
+	char ctr = 'X';
+	if (write(S[1], &ctr, sizeof(char)) != 1) {
+		printf ("Error");
+		exit (-1);
+	}
+	return;
+}
+
+#include <unistd.h>
+void semaphoreWait (int *S) {
+	char ctr;
+	if (read (S[0], &ctr, sizeof(char)) != 1) {
+		printf (“Error”);
+		exit (-1);
+	}
+	return;
+}
+```
+
+Example:
+```c
+int main() {
+	int S[2];
+	pid_t pid;
+	semaphoreInit (S, 0);
+	pid = fork();
+	// Check for correctness
+	if (pid == 0) {             // child
+		semaphoreWait (S);
+		printf("Wait done.\n");
+	} 
+	else {                      // parent
+		printf("Sleep 3s.\n");
+		sleep (3);
+		semaphoreSignal (S);
+		printf("Signal done.\n");
+	}
+	return 0;
+}
+```
+
+
+### POSIX semaphores
+There are two types of POSIX semaphores
+- Unnamed semaphores
+	- Implemented in the internal memory of the process
+	- They are used for the synchronization of threads within the same process
+- Named semaphores
+	- Implemented using shared memory, they are “process-shared semaphore”
+	- The are generally used in the synchronization between processes
+		- The name (sem_open) allows their use in different processes
+
+We will be analyzing only the unnamed semaphores which:
+- The implementation is independent from the OS, and it is defined in the semaphore.h header file
+- Insert in the .c file: `#include <semaphore.h>`
+
+The semahpore is a variable of type `sem_t`. A semaphore can be allocatd statically or dynamically (`sem_t *sem1, *sem2...`)
+
+Fucntions defined on semaphores: 
+- are named `sem_*`
+- return -1 or error
+
+
+```c
+int sem_init (sem_t *sem, int pshared, unsigned int value);
+```
+`pshared` value identifies the type of semaphore:
+- If equal to 0, the semaphore is local to the threads of current process
+- Otherwise, the semaphore can be shared between different processes (parent that initializes the semaphore and its children) 
+
+
+```c
+int sem_wait(sem_t *sem);
+```
+Standard wait
+- If the semaphore is equal to 0, it blocks the caller until it can decrease the value of the semaphore
+
+
+```c
+int sem_trywait(sem_t *sem);
+```
+Non-blocking wait
+- If the semaphore counter has a value greater than 0, perform the decrement, and returns 0
+- If the semaphore is equal to 0, returns -1 (instead of blocking the caller as `sem_wait` does)
+
+
+```c
+int sem_post(sem_t *sem);
+```
+Standard signal
+- Increments the semaphore counter, or wakes up a blocked thread if present
+
+
+```c
+int sem_getvalue(sem_t *sem,int *valP);
+```
+NOT TO BE USED:
+"The value of the semaphore may already have changed by the time sem_getvalue() returns." From the Linux manual.
+
+Allows obtaining the value of the semaphore counter
+- The value is assigned to `*valP`
+- If there are waiting threads
+ 0 is assigned to `*valP` (Linux)
+ or a negative number whose absolute value is equal to the number of processes waiting (POSIX)
+
+
+```c
+int sem_destroy(sem_t *sem);
+```
+Destroys the semaphore at the address pointed by sem
+- Destroying a semaphore that other threads are currently blocked on produces undefined behavior (on error, -1 is returned)
+- Using a semaphore that has been destroyed produces undefined results, until the semaphore has been reinitialized
+
+Example:
+```c
+#include "semaphore.h"
+sem_t sem;
+sem_init (&sem, 0, 0);
+
+... create threads ...
+
+sem_destroy (&sem);
+```
+would be:
+```c
+sem_wait (&sem);
+
+... SC ...
+
+sem_post (&sem);
+```
+
+
+Example:
+```c
+include "semaphore.h"
+sem_t *sem;
+sem = (sem_t *)
+malloc(sizeof(sem_t));
+sem_init (sem, 0, 0);
+
+... create threads ...
+
+sem_destroy (sem);
+```
+would be:
+```c
+sem_wait (sem);
+
+... SC ...
+
+sem_post (sem);
+```
+
+#### Pthread mutex
+Binary semaphores (mutex)
+- A mutex is of type pthread_mutex_t
+- System calls
+	- `pthread_mutex_init`
+	- `pthread_mutex_lock`
+	- `pthread_mutex_trylock`
+	- `pthread_mutex_unlock`
+	- `pthread_mutex_destroy`
+
+They can only assume 0 or 1 as values
+
+
+```c
+int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
+```
+Initializes the mutex referenced by mutex with
+attributes specified by `attr` (default=`NULL`)
+- Return value
+- 0 on success
+- Error code otherwise
+
+
+```c
+int pthread_mutex_lock(pthread_mutex_t *mutex);
+```
+Control the value of mutex and
+- Blocks the caller if the mutex is locked
+- Acquire the mutex lock if the mutex is unlocked
+
+Return value
+- 0 on success
+- Error code otherwise
+
+
+```c
+int pthread_mutex_trylock(pthread_mutex_t *mutex);
+```
+- Similar to `pthread_mutex_lock`, but returns
+without blocking the caller if the mutex is locked
+
+Return value
+- 0 if the lock has been successfully acquired
+- `EBUSY` error if the mutex was already locked by another thread
+
+
+```c
+int pthread_mutex_unlock(pthread_mutex_t *mutex);
+```
+- Release the mutex lock (typically at the end of a
+Critical Section)
+- Return value
+	- 0 on success
+	- Error code otherwise
+
+
+```c
+int pthread_mutex_destroy(pthread_mutex_t *mutex);
+```
+- Free mutex memory
+- The mutex cannot be used any more
+- Return value
+	- 0 on success
+	- Error code otherwise
+
+UNIT 5 AND 6 ARE MISSING SINCE THEY ARE EXERCISE RELATED
